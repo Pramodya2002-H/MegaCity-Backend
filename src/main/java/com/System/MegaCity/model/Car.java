@@ -20,4 +20,8 @@ public class Car {
     private String licensePlate;
     private int capacity;
     private String carImage;
+    private boolean available= true;
+    private String assignedDriverId;
+    private double baseRate;
+    private double driverRate;
 }

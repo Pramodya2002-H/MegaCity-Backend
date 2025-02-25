@@ -1,6 +1,5 @@
 package com.System.MegaCity.model;
 
-import java.math.BigDecimal;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -16,14 +15,35 @@ import lombok.NoArgsConstructor;
 
 public class Booking {
     @Id
-    
+    private String customerId;
+    private String driverId;
+    private String carId;
     private String bookingId;
-    private String pickupLoction;
+
+    private String pickupDate;
+    private String pickupLocation;
     private String dropLocation;
-    private BigDecimal price;
-    private BigDecimal totalAmount;
-    private String bookingStatus;
+    private double tax;
+    private double totalAmount;
     private String bookingDate;
-    
-   
+
+    private boolean completed = false;
+    private boolean driverRequired = false;
+
+    private BookingStatus status = BookingStatus.PENDING;
+    private String cancellationReason;
+    private String cancellatinDate;
+    private String cancellationTime;
+
+    private boolean refundIssued = false;
+
+    private double refundAmount;
+
+    public boolean canBeCancelled() {
+        return status == BookingStatus.PENDING || status == BookingStatus.CONFIRMED;
+    }
+
+    public boolean canBeDeleted() {
+        return status == BookingStatus.PENDING || status == BookingStatus.CONFIRMED;
+    }
 }

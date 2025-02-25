@@ -3,8 +3,7 @@ package com.System.MegaCity.service;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userDetails.User;
-//import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,8 +17,8 @@ import com.System.MegaCity.repository.CustomerRepository;
 import com.System.MegaCity.repository.DriverRepository;
 
 @Service
-public class UserDetailsServiceImpl  implements UserDetailsService{
-    
+public class UserDetailsServiceImpl implements UserDetailsService {
+
     @Autowired
     private AdminRepository adminRepository;
 
@@ -30,34 +29,34 @@ public class UserDetailsServiceImpl  implements UserDetailsService{
     private DriverRepository driverRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String email)throws UsernameNotFoundException{
-        
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+
         Optional<Admin> admin = adminRepository.findByEmail(email);
-        
-        if(admin.isPresent()){
+
+        if (admin.isPresent()) {
             return User.withUsername(admin.get().getEmail())
-            .password(admin.get().getPassword())
-            .roles("ADMIN")
-            .build();
+                    .password(admin.get().getPassword())
+                    .roles("ADMIN")
+                    .build();
         }
 
-        Optional<Customer> customer customerRepository.findByEmail(email);
+        Optional<Customer> customer = customerRepository.findByEmail(email);
 
-        if(admin.isPresent()){
+        if (admin.isPresent()) {
             return User.withUsername(customer.get().getEmail())
-            .password(customer.get().getPassword())
-            .roles("CUSTOMER")
-            .build();
+                    .password(customer.get().getPassword())
+                    .roles("CUSTOMER")
+                    .build();
         }
 
-        Optional<Driver> driver driverRepository.findByDriverEmail(email);
+        Optional<Driver> driver = driverRepository.findByEmail(email);
 
-        if(driver.isPresent()){
-            return User.withUsername(driver.get().getDriverEmail())
-            .password(driver.get().getPassword())
-            .roles("DRIVER")
-            .build();
+        if (driver.isPresent()) {
+            return User.withUsername(driver.get().getEmail())
+                    .password(driver.get().getPassword())
+                    .roles("DRIVER")
+                    .build();
         }
-        throw new UsernameNotFoundException("User not found with"+ email);
+        throw new UsernameNotFoundException("User not found with" + email);
     }
 }

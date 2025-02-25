@@ -2,6 +2,7 @@ package com.System.MegaCity.service;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.System.MegaCity.model.Customer;
@@ -13,7 +14,7 @@ public interface CustomerService {
 
     Customer getCustomerById(String customerId);
 
-    Customer createCustomer(Customer customer);
+    ResponseEntity<?> createCustomer(Customer customer);
 
     Customer updateCustomer(String customerId, Customer customer);
 

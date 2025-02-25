@@ -8,7 +8,9 @@ import org.springframework.stereotype.Repository;
 import com.System.MegaCity.model.Customer;
 
 @Repository
-public interface CustomerRepository extends MongoRepository<Customer,String> {
+public interface CustomerRepository extends MongoRepository<Customer, String> {
 
-    Optional<Customer>
+    Optional<Customer> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

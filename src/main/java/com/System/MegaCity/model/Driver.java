@@ -13,13 +13,27 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 public class Driver {
+
     @Id
     private String driverId;
+
     private String driverName;
-    private String licenseNumber;
-    private String driverEmail;
-    private String driverPassword;
-    private String role = "DRIVER";
+
+    private String driverLicenseNo;
+
+    private String driverPhoneNum;
+
+    private String email;
+
+    private String password;
+
+    private boolean available = true;
+
+    private String role ="DRIVER";
+
+    private String carId;
+
+    private boolean hasOwnCar = false;
 
     
 }

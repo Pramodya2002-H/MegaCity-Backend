@@ -23,7 +23,7 @@ import com.System.MegaCity.service.CarService;
 import com.System.MegaCity.service.CloudinaryService;
 
 @RestController
-@RequestMapping("/cars")
+@RequestMapping(value = "/auth/cars")
 @CrossOrigin(origins = "*")
 
 public class CarController {

@@ -3,50 +3,54 @@ package com.System.MegaCity.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 
 import com.System.MegaCity.model.Customer;
 import com.System.MegaCity.service.CustomerService;
 
+import io.jsonwebtoken.io.IOException;
+
 @RestController
+@CrossOrigin(origins = "*")
+@RequestMapping(value = "/auth/customer")
+
 public class CustomerController {
+
     @Autowired
     private CustomerService customerService;
 
-    @GetMapping("/customer")
+    @GetMapping("/getallCustomers")
     public List<Customer> getAllCustomers() {
         return customerService.getAllCustomers();
     }
 
-    @GetMapping("/viewCustomer/{customerId}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable String customerId) {
-        Customer customer = customerService.getCustomerById(customerId);
-        return ResponseEntity.ok(customer);
+    @GetMapping("/getcustomer/{customerId}")
+    public Customer getCustomerById(@PathVariable String customerId) {
+        return customerService.getCustomerById(customerId);
     }
 
-    @PostMapping("/createCustomer")
-    public ResponseEntity<Customer> createCustomer(@RequestBody Customer customer) {
-        Customer createCustomer = customerService.createCustomer(customer);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createCustomer);
-    }
+    
+    @PostMapping("/createcustomer")
+    public ResponseEntity<?> createCustomer(@RequestParam("customerName") String customerName,
+                                            @RequestParam("customerEmail") String customerEmail,
+                                            @RequestParam("address") String address,
+                                            @RequestParam("phoneNo") String phoneNo,
+                                            @RequestParam("password") String password) {
+        try {
 
-    @PutMapping("/updateCustomer/{customerId}")
-    public ResponseEntity<Customer> upadateCustomer(@PathVariable String customerId, @RequestBody Customer customer) {
-        Customer updatedCustomer = customerService.updateCustomer(customerId, customer);
-        return ResponseEntity.ok(updatedCustomer);
-    }
+            Customer customer = new Customer();
+            customer.setCustomerName(customerName);
+            customer.setEmail(customerEmail);
+            customer.setAddress(address);
+            customer.setPhoneNo(phoneNo);
+            customer.setPassword(password);
 
-    @DeleteMapping("/{customerId}")
-    public ResponseEntity<String> deleteCustomer(@PathVariable String customerId) {
-        customerService.deleteCustomer(customerId);
-        return ResponseEntity.ok("Customer deleted successfully");
+            return customerService.createCustomer(customer);
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body("Error uploading image: " + e.getMessage());
+        }
+    
     }
 }
