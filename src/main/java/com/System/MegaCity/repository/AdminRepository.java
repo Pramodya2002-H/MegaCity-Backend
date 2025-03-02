@@ -8,8 +8,10 @@ import org.springframework.stereotype.Repository;
 import com.System.MegaCity.model.Admin;
 
 @Repository
-public interface AdminRepository extends MongoRepository<Admin,String>{
-    
+public interface AdminRepository extends MongoRepository<Admin, String> {
+
     Optional<Admin> findByEmail(String email);
-    
+
+    boolean existsByEmail(String email);
+
 }

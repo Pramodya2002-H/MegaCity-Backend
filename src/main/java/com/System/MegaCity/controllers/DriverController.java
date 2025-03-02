@@ -49,7 +49,7 @@ public class DriverController {
         return driverService.getAllDrivers();
     }
 
-    @GetMapping("/drivers/{id}")
+    @GetMapping("/drivers/{driverId}")
     public Driver getDriverById(@PathVariable String driverId) {
         return driverService.getDriverById(driverId);
     }

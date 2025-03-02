@@ -3,6 +3,7 @@ package com.System.MegaCity.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,44 +14,44 @@ import com.System.MegaCity.service.CustomerService;
 import io.jsonwebtoken.io.IOException;
 
 @RestController
+@RequestMapping("/auth/customers")
 @CrossOrigin(origins = "*")
-@RequestMapping(value = "/auth/customer")
 
 public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
 
-    @GetMapping("/getallCustomers")
-    public List<Customer> getAllCustomers() {
-        return customerService.getAllCustomers();
+    @GetMapping("/viewCustomers")
+    public ResponseEntity<List<Customer>> getAllCustomers() {
+        return new ResponseEntity<>(customerService.getAllCustomers(), HttpStatus.OK);
     }
 
-    @GetMapping("/getcustomer/{customerId}")
-    public Customer getCustomerById(@PathVariable String customerId) {
-        return customerService.getCustomerById(customerId);
+    @GetMapping("/getCustomer/{id}")
+    public ResponseEntity<Customer> getCustomerById(@PathVariable("id") String customerId) {
+        Customer customer = customerService.getCustomerById(customerId);
+        return customer != null ? ResponseEntity.ok(customer) : ResponseEntity.notFound().build();
     }
 
-    
-    @PostMapping("/createcustomer")
-    public ResponseEntity<?> createCustomer(@RequestParam("customerName") String customerName,
-                                            @RequestParam("customerEmail") String customerEmail,
-                                            @RequestParam("address") String address,
-                                            @RequestParam("phoneNo") String phoneNo,
-                                            @RequestParam("password") String password) {
+    @PostMapping("/createCustomer")
+    public ResponseEntity<?> createCustomer(@RequestBody Customer customer) {
+        return customerService.createCustomer(customer);
+    }
+
+    @PutMapping("/updateCustomer/{id}")
+    public ResponseEntity<Customer> updateCustomer(@PathVariable("id") String customerId, @RequestBody Customer customer) {
         try {
-
-            Customer customer = new Customer();
-            customer.setCustomerName(customerName);
-            customer.setEmail(customerEmail);
-            customer.setAddress(address);
-            customer.setPhoneNo(phoneNo);
-            customer.setPassword(password);
-
-            return customerService.createCustomer(customer);
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().body("Error uploading image: " + e.getMessage());
+            Customer updatedCustomer = customerService.updateCustomer(customerId, customer);
+            return ResponseEntity.ok(updatedCustomer);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
         }
-    
     }
+
+    @DeleteMapping("/deleteCustomer/{id}")
+    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") String customerId) {
+        customerService.deleteCustomer(customerId);
+        return ResponseEntity.noContent().build();
+    }
+ 
 }

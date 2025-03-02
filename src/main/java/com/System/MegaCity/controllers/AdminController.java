@@ -3,7 +3,6 @@ package com.System.MegaCity.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,9 +33,8 @@ public class AdminController {
     }
 
     @PostMapping("/createAdmin")
-    public ResponseEntity<Admin> createAdmin(@RequestBody Admin admin) {
-        Admin createAdmin = adminService.createAdmin(admin);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createAdmin);
+    public ResponseEntity<?> createAdmin(@RequestBody Admin admin) {
+        return adminService.createAdmin(admin);
     }
 
     
