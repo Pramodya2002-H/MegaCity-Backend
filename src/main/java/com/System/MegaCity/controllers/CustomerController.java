@@ -7,11 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-
 import com.System.MegaCity.model.Customer;
 import com.System.MegaCity.service.CustomerService;
-
-import io.jsonwebtoken.io.IOException;
 
 @RestController
 @RequestMapping("/auth/customers")
@@ -39,7 +36,8 @@ public class CustomerController {
     }
 
     @PutMapping("/updateCustomer/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable("id") String customerId, @RequestBody Customer customer) {
+    public ResponseEntity<Customer> updateCustomer(@PathVariable("id") String customerId,
+            @RequestBody Customer customer) {
         try {
             Customer updatedCustomer = customerService.updateCustomer(customerId, customer);
             return ResponseEntity.ok(updatedCustomer);
@@ -53,5 +51,5 @@ public class CustomerController {
         customerService.deleteCustomer(customerId);
         return ResponseEntity.noContent().build();
     }
- 
+
 }
