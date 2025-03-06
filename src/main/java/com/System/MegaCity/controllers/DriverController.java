@@ -54,9 +54,8 @@ public class DriverController {
         return driverService.getDriverById(driverId);
     }
 
-    @PostMapping(value = "/createdriver",
-            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
-            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/createdriver", consumes = {
+            MediaType.MULTIPART_FORM_DATA_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createDriver(
             @RequestParam("driverName") String driverName,
             @RequestParam("email") String email,
@@ -70,10 +69,9 @@ public class DriverController {
             @RequestParam(value = "capacity", required = false) Integer capacity,
             @RequestParam(value = "baseRate", required = false) Double baseRate,
             @RequestParam(value = "driverRate", required = false) Double driverRate,
-            @RequestParam(value = "carImage", required = false) MultipartFile carImage
-            ) {
+            @RequestParam(value = "carImage", required = false) MultipartFile carImage) {
 
-        try{
+        try {
             Driver driver = new Driver();
             driver.setDriverName(driverName);
             driver.setEmail(email);
@@ -82,20 +80,18 @@ public class DriverController {
             driver.setPassword(password);
             driver.setHasOwnCar(hasOwnCar);
 
-           
             Car car = null;
-            if(hasOwnCar){
+            if (hasOwnCar) {
                 car = new Car();
                 car.setLicensePlate(carLicensePlate);
                 car.setModel(carModel);
                 car.setBrand(carBrand);
 
-                
                 if (capacity != null) {
                     car.setCapacity(capacity);
                 } else {
-                    
-                    car.setCapacity(4); 
+
+                    car.setCapacity(4);
                 }
 
                 if (baseRate != null) {
@@ -106,7 +102,7 @@ public class DriverController {
                     car.setDriverRate(driverRate);
                 }
 
-                if(carImage != null && !carImage.isEmpty()){
+                if (carImage != null && !carImage.isEmpty()) {
                     String carImgUrl = handleImageUpload(carImage, "car");
                     car.setCarImage(carImgUrl);
                 }
@@ -114,7 +110,7 @@ public class DriverController {
 
             return driverService.createDriver(driver, car);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("Error creating driver: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error creating driver: " + e.getMessage());
@@ -143,7 +139,7 @@ public class DriverController {
         return ResponseEntity.ok(driver);
     }
 
-     @GetMapping("/{driverId}/bookings")
+    @GetMapping("/{driverId}/bookings")
     public ResponseEntity<List<Booking>> getDriverBookings(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable String driverId) {
@@ -181,6 +177,5 @@ public class DriverController {
 
         return basePath + filename;
     }
-  
 
 }
