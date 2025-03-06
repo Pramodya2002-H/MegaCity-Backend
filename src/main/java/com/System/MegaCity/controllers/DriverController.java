@@ -121,6 +121,12 @@ public class DriverController {
         }
     }
 
+    @PutMapping("/updateDriver/{driverId}")
+    public ResponseEntity<Driver> updateDriver(@PathVariable String driverId, @RequestBody Driver driver) {
+        log.info("Updating driver with ID: {}", driverId);
+        return ResponseEntity.ok(driverService.updateDriver(driverId, driver));
+    }
+
     @PutMapping("/{driverId}/availability")
     public ResponseEntity<Driver> updateAvailability(
             @AuthenticationPrincipal UserDetails userDetails,
