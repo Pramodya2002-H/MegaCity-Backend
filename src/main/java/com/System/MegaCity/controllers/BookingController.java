@@ -1,4 +1,5 @@
 package com.System.MegaCity.controllers;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,15 +89,14 @@ public class BookingController {
 
     @GetMapping("/{bookingId}")
     public ResponseEntity<Booking> getCustomerBooking(
-        @AuthenticationPrincipal UserDetails userDetails ,
-        @PathVariable String bookingId
-    ){
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String bookingId) {
 
         String email = userDetails.getUsername();
         log.info("fetching booking: {} for customer email: {}", bookingId, email);
 
         Customer customer = customerRepository.findByEmail(email)
-                    .orElseThrow(()-> new ResourceNotFoundException("Customer not found with email :"+ email));
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with email :" + email));
 
         Booking booking = bookingService.getBookingDetails(customer.getCustomerId(), bookingId);
 
@@ -107,21 +107,18 @@ public class BookingController {
     @DeleteMapping("/delete/{bookingId}")
     public ResponseEntity<Void> deleteBooking(
 
-        @AuthenticationPrincipal UserDetails userDetails,
-        @PathVariable String bookingId){
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String bookingId) {
 
-            String email = userDetails.getUsername();
-            log.info("Deleting booking: {} for customer email: {} ", bookingId,email);
+        String email = userDetails.getUsername();
+        log.info("Deleting booking: {} for customer email: {} ", bookingId, email);
 
-            Customer customer = customerRepository.findByEmail(email)
-                    .orElseThrow(()-> new ResourceNotFoundException("Customer not found with email :" + email));
+        Customer customer = customerRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Customer not found with email :" + email));
 
-            bookingService.deleteBooking(customer.getCustomerId(), bookingId);
-            return ResponseEntity.noContent().build();
-                    
+        bookingService.deleteBooking(customer.getCustomerId(), bookingId);
+        return ResponseEntity.noContent().build();
 
-
-        }
-    
+    }
 
 }
