@@ -15,12 +15,12 @@ import com.System.MegaCity.DTO.LoginDTO;
 import com.System.MegaCity.util.JwtUtil;
 
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "")
 @RequestMapping("/auth")
 public class AuthController {
-
     @Autowired
     private AuthenticationManager authenticationManager;
+
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -29,7 +29,8 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) throws Exception {
         // Authenticate the user
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword()));
+                new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
+        );
 
         String token = jwtUtil.generateToken(authentication);
         String role = jwtUtil.extractRole(token);
@@ -40,26 +41,22 @@ public class AuthController {
 
 }
 
-class AuthResponse {
+class AuthResponse{
     private String token;
     private String role;
     private String userId;
 
-    public AuthResponse(String token, String role, String userId) {
+    public AuthResponse(String token, String role, String userId){
         this.token = token;
         this.role = role;
         this.userId = userId;
     }
 
-    public String getToken() {
+    public String getToken(){
         return token;
     }
-
-    public String getRole() {
+    public String getRole(){
         return role;
     }
-
-    public String getUserId() {
-        return userId;
-    }
+    public String getUserId(){ return userId;}
 }

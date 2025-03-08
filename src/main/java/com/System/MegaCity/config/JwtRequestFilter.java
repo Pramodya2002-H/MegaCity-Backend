@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class JwtRequestFilter extends OncePerRequestFilter{
+public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -30,23 +30,23 @@ public class JwtRequestFilter extends OncePerRequestFilter{
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException{
+            throws ServletException, IOException {
         String token = request.getHeader("Authorization");
-        if(token != null && token.startsWith("Bearer ")){
+        if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
             String email = jwtUtil.extractEmail(token);
-            if(email != null && SecurityContextHolder.getContext().getAuthentication() == null){
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-                if(jwtUtil.validateToken(token, userDetails)){
+                if (jwtUtil.validateToken(token, userDetails)) {
                     String role = "ROLE_" + jwtUtil.extractRole(token);
                     SecurityContextHolder.getContext().setAuthentication(
-                        new UsernamePasswordAuthenticationToken(userDetails, null, List.of(new SimpleGrantedAuthority(role)))
-                    );
+                            new UsernamePasswordAuthenticationToken(userDetails, null,
+                                    List.of(new SimpleGrantedAuthority(role))));
                 }
             }
         }
         chain.doFilter(request, response);
     }
-    
+
 }
