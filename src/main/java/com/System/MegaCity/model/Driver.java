@@ -29,11 +29,10 @@ public class Driver {
 
     private boolean available = true;
 
-    private String role ="DRIVER";
+    private String role = "DRIVER";
 
     private String carId;
 
     private boolean hasOwnCar = false;
 
-    
 }
