@@ -5,22 +5,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.System.MegaCity.DTO.LoginDTO;
 import com.System.MegaCity.util.JwtUtil;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 @RestController
-@CrossOrigin(origins = "")
+@CrossOrigin(origins = "*")
 @RequestMapping("/auth")
 public class AuthController {
+
     @Autowired
     private AuthenticationManager authenticationManager;
-
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -29,8 +30,7 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) throws Exception {
         // Authenticate the user
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
-        );
+                new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword()));
 
         String token = jwtUtil.generateToken(authentication);
         String role = jwtUtil.extractRole(token);
@@ -41,22 +41,26 @@ public class AuthController {
 
 }
 
-class AuthResponse{
+class AuthResponse {
     private String token;
     private String role;
     private String userId;
 
-    public AuthResponse(String token, String role, String userId){
+    public AuthResponse(String token, String role, String userId) {
         this.token = token;
         this.role = role;
         this.userId = userId;
     }
 
-    public String getToken(){
+    public String getToken() {
         return token;
     }
-    public String getRole(){
+
+    public String getRole() {
         return role;
     }
-    public String getUserId(){ return userId;}
+
+    public String getUserId() {
+        return userId;
+    }
 }
