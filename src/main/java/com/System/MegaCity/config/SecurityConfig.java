@@ -36,7 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/driver/**").hasAuthority("ROLE_DRIVER")
                         .requestMatchers("/customer/**").hasAuthority("ROLE_CUSTOMER")
-                        .requestMatchers("/bookings/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/booking/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_CUSTOMER", "ROLE_DRIVER")
                         .anyRequest().authenticated())
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

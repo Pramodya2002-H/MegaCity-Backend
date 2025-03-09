@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(value = "/bookings")
+@RequestMapping(value = "/auth/booking")
 @Slf4j
 public class BookingController {
 

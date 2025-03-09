@@ -6,9 +6,11 @@ import lombok.Data;
 public class BookingRequestDTO {
     private String customerId;
     private String carId;
+    private String bookingId;
     private String pickupLocation;
     private String dropLocation;
     private String pickupDate;
     private boolean driverRequired;
+    
     
 }

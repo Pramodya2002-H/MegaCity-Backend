@@ -71,6 +71,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = new Booking();
         booking.setCustomerId(request.getCustomerId());
         booking.setCarId(request.getCarId());
+        booking.setBookingId(request.getBookingId());
         booking.setPickupLocation(request.getPickupLocation());
         booking.setDropLocation(request.getDropLocation());
         booking.setPickupDate(request.getPickupDate());
