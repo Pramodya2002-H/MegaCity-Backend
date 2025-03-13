@@ -1,18 +1,15 @@
 package com.System.MegaCity.service;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.System.MegaCity.DTO.BookingRequestDTO;
+import com.System.MegaCity.DTO.BookingRequest;
 import com.System.MegaCity.DTO.CancellationRequest;
 import com.System.MegaCity.exception.InvalidBookingException;
+import com.System.MegaCity.exception.InvalidBookingStateException;
 import com.System.MegaCity.exception.ResourceNotFoundException;
 import com.System.MegaCity.exception.UnauthorizedException;
 import com.System.MegaCity.model.Booking;
@@ -23,15 +20,23 @@ import com.System.MegaCity.repository.BookingRepository;
 import com.System.MegaCity.repository.CarRepository;
 import com.System.MegaCity.repository.DriverRepository;
 
-
-import lombok.extern.slf4j.Slf4j;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
-
 public class BookingServiceImpl implements BookingService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter DATE_ONLY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Autowired
     private BookingRepository bookingRepository;
@@ -42,14 +47,12 @@ public class BookingServiceImpl implements BookingService {
     @Autowired
     private DriverRepository driverRepository;
 
-
     private static final int CANCELLATION_WINDOW_HOURS = 24;
     private static final double CANCELLATION_FEE_PERCENTAGE = 0.1;
 
     @Override
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
-
     }
 
     @Override
@@ -59,13 +62,11 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public Booking createBooking(BookingRequestDTO request) {
-
+    public Booking createBooking(BookingRequest request) {
         Car car = carRepository.findById(request.getCarId())
                 .orElseThrow(() -> new ResourceNotFoundException("Car not found"));
         if (!isCarAvailableForTime(car, request.getPickupDate())) {
             throw new InvalidBookingException("Car is not available for requested time");
-
         }
 
         Booking booking = new Booking();
@@ -73,8 +74,9 @@ public class BookingServiceImpl implements BookingService {
         booking.setCarId(request.getCarId());
         booking.setBookingId(request.getBookingId());
         booking.setPickupLocation(request.getPickupLocation());
-        booking.setDropLocation(request.getDropLocation());
+        booking.setDestination(request.getDestination());
         booking.setPickupDate(request.getPickupDate());
+        booking.setPickupTime(request.getPickupTime());
         booking.setBookingDate(LocalDateTime.now().format(DATE_FORMATTER));
         booking.setDriverRequired(request.isDriverRequired());
         booking.setStatus(BookingStatus.CONFIRMED);
@@ -82,132 +84,63 @@ public class BookingServiceImpl implements BookingService {
 
         if (request.isDriverRequired()) {
             assignDriverToBooking(booking, car);
-
         }
-
-        car.setAvailable(false);
         carRepository.save(car);
 
-        log.info("Create new booking with ID :  {} for customer : {}",
+        log.info("Created new booking with ID: {} for customer: {}",
                 booking.getBookingId(), booking.getCustomerId());
         return bookingRepository.save(booking);
-
-    }
-
-    @Transactional
-    public Booking cancelBooking(String customerId, CancellationRequest request) {
-
-        Booking booking = bookingRepository.findById(request.getBookingId())
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
-
-        if (!booking.getCustomerId().equals(customerId)) {
-
-            throw new UnauthorizedException("Not Authorized to cancel booking");
-
-        }
-
-        if (!booking.canBeCancelled()) {
-            throw new InvalidBookingException("Booking can not be  cancelled in current situation");
-        }
-
-        booking.setStatus(BookingStatus.CANCELLED);
-        booking.setCancellationReason(request.getReason());
-        booking.setCancellationTime(LocalDateTime.now().format(DATE_FORMATTER));
-
-        releaseBookingResource(booking);
-        handleCancellationRefund(booking);
-
-        log.info("Cancelled booking with ID: {} for customer: {}",
-                booking.getBookingId(), booking.getCustomerId()
-
-        );
-
-        return bookingRepository.save(booking);
-
-    }
-
-    @Transactional(readOnly = true)
-    public List<Booking> getCustomerBookings(String customerId) {
-        return bookingRepository.findByCustomerId(customerId);
-    }
-
-    @Transactional(readOnly = true)
-    public Booking getBookingDetails(String customerId, String bookingId) {
-
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
-
-        if (!booking.getCustomerId().equals(customerId)) {
-
-            throw new UnauthorizedException("Not authorized to view this booking");
-        }
-
-        return booking;
     }
 
     @Override
-    public void deleteBooking(String bookingId, String customerId) {
+    public void deleteBooking(String customerId, String bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
 
         if (!booking.getCustomerId().equals(customerId)) {
-            throw new UnauthorizedException("Not authorized to delete this booking ");
+            throw new UnauthorizedException("Not authorized to delete this booking");
         }
 
         if (!booking.canBeDeleted()) {
-            throw new InvalidBookingException("Booking can't delete in current state");
+            throw new InvalidBookingStateException("Booking cannot be deleted in current state");
         }
 
         releaseBookingResource(booking);
-
         bookingRepository.delete(booking);
-        log.info("Deleted booking with ID : {} for customer: {} ", bookingId, customerId);
+        log.info("Deleted booking with ID: {} for customer: {}", bookingId, customerId);
     }
 
     private boolean isCarAvailableForTime(Car car, String requestedTime) {
-
         if (!car.isAvailable()) {
             return false;
         }
-
         List<Booking> existingBookings = bookingRepository.findByCarIdAndStatus(
-
                 car.getCarId(),
-                BookingStatus.CONFIRMED
-
-        );
-
+                BookingStatus.CONFIRMED);
         return existingBookings.stream()
                 .noneMatch(booking -> isTimeOverlapping(booking.getPickupDate(), requestedTime));
-
     }
 
     private boolean isTimeOverlapping(String existing, String requested) {
-        LocalDateTime existingTime = LocalDateTime.parse(existing, DATE_FORMATTER);
-        LocalDateTime requestedTime = LocalDateTime.parse(requested, DATE_FORMATTER);
-
+        LocalDateTime existingTime = parsePickupDate(existing);
+        LocalDateTime requestedTime = parsePickupDate(requested);
         Duration buffer = Duration.ofHours(1);
         return Math.abs(Duration.between(existingTime, requestedTime).toHours()) < buffer.toHours();
-
     }
 
-    private double calculateBookingAmount(Car car, BookingRequestDTO request) {
+    private double calculateBookingAmount(Car car, BookingRequest request) {
         double baseAmount = car.getBaseRate();
         if (request.isDriverRequired()) {
             baseAmount += car.getDriverRate();
         }
-
         return baseAmount;
     }
 
     private void assignDriverToBooking(Booking booking, Car car) {
-
         Driver driver;
-
         if (car.getAssignedDriverId() != null) {
             driver = driverRepository.findById(car.getAssignedDriverId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Assigned driver  not found"));
-
+                    .orElseThrow(() -> new ResourceNotFoundException("Assigned driver not found"));
             if (!driver.isAvailable()) {
                 throw new InvalidBookingException("Car's assigned driver is not available");
             }
@@ -219,76 +152,155 @@ public class BookingServiceImpl implements BookingService {
         booking.setDriverId(driver.getDriverId());
         driver.setAvailable(false);
         driverRepository.save(driver);
-        log.info("Assign driver {} to booking {}", driver.getDriverId(), booking.getBookingId());
+        log.info("Assigned driver {} to booking {}", driver.getDriverId(), booking.getBookingId());
+    }
 
+    @Override
+    @Transactional
+    public Booking cancelBooking(String customerId, CancellationRequest request) {
+        log.info("Cancelling booking with ID: {} for customer: {}", request.getBookingId(), customerId);
+
+        if (request.getBookingId() == null || request.getBookingId().isEmpty()) {
+            throw new IllegalArgumentException("Booking ID cannot be null or empty");
+        }
+
+        Booking booking = bookingRepository.findById(request.getBookingId())
+                .orElseThrow(() -> {
+                    log.error("Booking not found with ID: {}", request.getBookingId());
+                    return new ResourceNotFoundException("Booking not found or already deleted");
+                });
+
+        if (!booking.getCustomerId().equals(customerId)) {
+            log.warn("Unauthorized cancellation attempt for booking: {} by customer: {}", request.getBookingId(),
+                    customerId);
+            throw new UnauthorizedException("Not authorized to cancel this booking");
+        }
+
+        if (!booking.canBeCancelled()) {
+            log.warn("Invalid cancellation attempt for booking: {} in state: {}", request.getBookingId(),
+                    booking.getStatus());
+            throw new InvalidBookingStateException("Booking cannot be cancelled in current state");
+        }
+
+        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setCancellationReason(request.getReason());
+        booking.setCancellationTime(LocalDateTime.now().format(DATE_FORMATTER));
+
+        releaseBookingResource(booking);
+        handleCancellationRefund(booking);
+
+        bookingRepository.save(booking);
+        log.info("Successfully cancelled booking with ID: {} for customer: {}", booking.getBookingId(),
+                booking.getCustomerId());
+        return booking;
     }
 
     private void releaseBookingResource(Booking booking) {
-
         if (booking.getCarId() != null) {
-
             Car car = carRepository.findById(booking.getCarId()).orElse(null);
             if (car != null && !car.isAvailable()) {
                 car.setAvailable(true);
                 carRepository.save(car);
-                log.info("Released car {} from booking {} ", car.getCarId(), booking.getBookingId());
+                log.info("Released car {} from booking {}", car.getCarId(), booking.getBookingId());
             }
         }
 
         if (booking.getDriverId() != null) {
             Driver driver = driverRepository.findById(booking.getDriverId()).orElse(null);
-
             if (driver != null && !driver.isAvailable()) {
-
                 driver.setAvailable(true);
                 driverRepository.save(driver);
-                log.info("Released driver {} from booking {}", booking.getBookingId(), driver.getDriverId());
+                log.info("Released driver {} from booking {}", driver.getDriverId(), booking.getBookingId());
             }
         }
     }
 
     private void handleCancellationRefund(Booking booking) {
-
-        LocalDateTime pickupDateTime = LocalDateTime.parse(booking.getPickupDate(), DATE_FORMATTER);
+        LocalDateTime pickupDateTime = parsePickupDate(booking.getPickupDate());
         LocalDateTime cancellationDeadline = pickupDateTime.minusHours(CANCELLATION_WINDOW_HOURS);
         if (LocalDateTime.now().isBefore(cancellationDeadline)) {
-
             booking.setRefundAmount(booking.getTotalAmount());
         } else {
             double cancellationFee = booking.getTotalAmount() * CANCELLATION_FEE_PERCENTAGE;
             booking.setRefundAmount(booking.getTotalAmount() - cancellationFee);
         }
-        log.info("Processing refund of {} for booking {}",
-                booking.getRefundAmount(), booking.getBookingId());
+        log.info("Processing refund of {} for booking {}", booking.getRefundAmount(), booking.getBookingId());
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 1000)
+    @Transactional
     public void checkAndUpdateCarAvailability() {
-        String currentTime = LocalDateTime.now().format(DATE_FORMATTER);
+        // Adjust to Sri Lanka timezone
+        ZoneId sriLankaZoneId = ZoneId.of("Asia/Colombo");
+        LocalDateTime now = LocalDateTime.now(sriLankaZoneId); // Current time in Sri Lanka timezone
+        LocalDate today = now.toLocalDate();
+        LocalTime currentTime = now.toLocalTime().truncatedTo(ChronoUnit.SECONDS); // Truncate milliseconds
+
         List<Booking> activeBookings = bookingRepository.findByStatusAndPickupDateBefore(
-                BookingStatus.CONFIRMED, currentTime);
+                BookingStatus.CONFIRMED, now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 
         for (Booking booking : activeBookings) {
-            updateBookingStatus(booking);
+            LocalDateTime pickupDateTime = parsePickupDate(booking.getPickupDate());
+            if (pickupDateTime.isBefore(now)) {
+                // Update the car availability status to "Unavailable"
+                String carId = booking.getCarId();
+                Optional<Car> car = carRepository.findById(carId);
+                car.ifPresent(c -> {
+                    c.setAvailable(false);
+                    carRepository.save(c);
+                });
+
+                // Optionally, update the booking status if needed
+                updateBookingStatus(booking);
+            }
         }
 
-        log.info("Completed periodic booking status check ");
-
+        log.info("Completed periodic booking status check at {}", now);
     }
 
     private void updateBookingStatus(Booking booking) {
+        try {
+            LocalDateTime pickupTime = parsePickupDate(booking.getPickupDate());
+            LocalDateTime now = LocalDateTime.now();
 
-        LocalDateTime pickupTime = LocalDateTime.parse(booking.getPickupDate(), DATE_FORMATTER);
-        LocalDateTime now = LocalDateTime.now();
-
-        if (now.isAfter(pickupTime)) {
-
-            booking.setStatus(BookingStatus.IN_PROGRESS);
-            bookingRepository.save(booking);
-            log.info("updated booking {} status to IN_PROGRESS", booking.getBookingId());
-
+            if (now.isAfter(pickupTime)) {
+                booking.setStatus(BookingStatus.IN_PROGRESS);
+                bookingRepository.save(booking);
+                log.info("Updated booking {} status to IN_PROGRESS", booking.getBookingId());
+            }
+        } catch (DateTimeParseException e) {
+            log.error("Failed to parse pickup date for booking {}: {}",
+                    booking.getBookingId(), booking.getPickupDate(), e);
         }
-
     }
 
+    private LocalDateTime parsePickupDate(String pickupDate) {
+        try {
+            return LocalDateTime.parse(pickupDate, DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            try {
+                LocalDate date = LocalDate.parse(pickupDate, DATE_ONLY_FORMATTER);
+                return date.atStartOfDay();
+            } catch (DateTimeParseException e2) {
+                throw new IllegalArgumentException("Invalid date format: " + pickupDate, e2);
+            }
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<Booking> getCustomerBookings(String customerId) {
+        return bookingRepository.findByCustomerId(customerId);
+    }
+
+    @Transactional(readOnly = true)
+    public Booking getBookingDetails(String customerId, String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found"));
+
+        if (!booking.getCustomerId().equals(customerId)) {
+            throw new UnauthorizedException("Not authorized to view this booking");
+        }
+
+        return booking;
+    }
 }
