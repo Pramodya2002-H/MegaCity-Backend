@@ -25,8 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 
 public class DriverServiceImpl implements DriverService {
 
-
-
     @Autowired
     private DriverRepository driverRepository;
 
