@@ -50,6 +50,7 @@ public class CarController {
             @RequestParam String licenseplate,
             @RequestParam int capacity,
             @RequestParam String availableStatus,
+            @RequestParam String baseRate,
             @RequestParam MultipartFile carImg) throws IOException {
 
         String carImage = cloudinaryService.uploadImage(carImg);

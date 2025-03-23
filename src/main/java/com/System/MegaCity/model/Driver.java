@@ -35,4 +35,9 @@ public class Driver {
 
     private boolean hasOwnCar = false;
 
+    public void setDriverVehicalLicense(String driverVehicalLicense) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setDriverVehicalLicense'");
+    }
+
 }
