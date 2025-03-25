@@ -347,14 +347,13 @@ public class BookingServiceImpl implements BookingService {
             car.ifPresent(c -> {
                 c.setAvailable(false);
                 carRepository.save(c);
-                log.info("Car {} marked as unavailable due to past pickup time for booking {}",
-                        carId, booking.getBookingId());
+                
             });
 
             updateBookingStatus(booking);
         }
 
-        log.info("Completed periodic booking status check at {}", now);
+        
     }
 
     private void updateBookingStatus(Booking booking) {
