@@ -347,13 +347,12 @@ public class BookingServiceImpl implements BookingService {
             car.ifPresent(c -> {
                 c.setAvailable(false);
                 carRepository.save(c);
-                
+
             });
 
             updateBookingStatus(booking);
         }
 
-        
     }
 
     private void updateBookingStatus(Booking booking) {
@@ -408,12 +407,12 @@ public class BookingServiceImpl implements BookingService {
                     .append(statusMessage.toLowerCase()).append(".\n\n");
 
             if (booking.getStatus() == BookingStatus.CANCELLED && booking.getRefundAmount() > 0) {
-                emailBody.append("A refund of $").append(booking.getRefundAmount())
+                emailBody.append("A refund of Rs").append(booking.getRefundAmount())
                         .append(" will be processed to your original payment method.\n\n");
             }
 
             emailBody.append("If you have any questions, please contact our customer service team.\n");
-            emailBody.append("Phone: +94 11 123 4567\n");
+            emailBody.append("Phone: +94 74 123 4567\n");
             emailBody.append("Email: support@megacitycab.com\n\n");
 
             emailBody.append("Thank you for choosing MegaCityCab!\n");
@@ -431,71 +430,88 @@ public class BookingServiceImpl implements BookingService {
         emailBody.append("<html>")
                 .append("<head>")
                 .append("<style>")
-                .append("body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }")
-                .append(".container { width: 100%; padding: 20px; }")
-                .append(".content { max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }")
-                .append(".header { text-align: center; padding: 10px 0; }")
-                .append(".header img { width: 150px; }")
-                .append(".details { margin: 20px 0; }")
-                .append(".details h2 { background-color: #007BFF; color: #ffffff; padding: 10px; border-radius: 5px; }")
-                .append(".details p { margin: 5px 0; }")
-                .append(".invoice { background-color: #f9f9f9; padding: 20px; border-radius: 10px; }")
+                .append("body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 0; background-color: #f5f7fa; color: #333333; }")
+                .append(".container { max-width: 700px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }")
+                .append(".header { background: linear-gradient(135deg,hsl(54, 89.20%, 47.30%) 0%,rgb(240, 225, 13) 100%); padding: 30px; text-align: center; color: white; }")
+                .append(".header img { max-width: 180px; height: auto; }")
+                .append(".header h1 { margin: 15px 0 0; font-size: 28px; font-weight: 300; }")
+                .append(".content { padding: 30px; }")
+                .append(".section { margin-bottom: 25px; }")
+                .append(".section h2 { color:rgb(238, 216, 14); font-size: 20px; border-bottom: 2px solidrgb(235, 219, 7); padding-bottom: 8px; margin-bottom: 15px; }")
+                .append(".info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }")
+                .append(".info-row:last-child { border-bottom: none; }")
+                .append(".label { font-weight: 600; color: #555; }")
+                .append(".value { color: #333; }")
+                .append(".invoice { background-color: #f8fafc; padding: 20px; border-radius: 6px; }")
                 .append(".invoice table { width: 100%; border-collapse: collapse; }")
-                .append(".invoice th, .invoice td { padding: 10px; border-bottom: 1px solid #dddddd; }")
-                .append(".invoice th { text-align: left; background-color: #007BFF; color: #ffffff; }")
-                .append(".total { text-align: right; font-weight: bold; }")
-                .append(".footer { text-align: center; margin-top: 20px; font-size: 12px; color: #888888; }")
+                .append(".invoice th { background-color:rgb(235, 219, 7); color: white; padding: 12px; text-align: left; }")
+                .append(".invoice td { padding: 12px; }")
+                .append(".total { font-weight: 700; background-color: #eef2f7; }")
+                .append(".footer { text-align: center; padding: 20px; background-color: #f8fafc; font-size: 13px; color: #777; }")
+                .append(".contact-info { margin: 15px 0; line-height: 1.6; }")
                 .append("</style>")
                 .append("</head>")
                 .append("<body>")
                 .append("<div class='container'>")
-                .append("<div class='content'>")
                 .append("<div class='header'>")
-                .append("<img src='https://www.megacitycab.com/logo.png' alt='MegaCityCab Logo' />")
+                .append("<img src='https://www.google.com/search?sca_esv=63fe5d3f66683875&sxsrf=AHTn8zoN0PeL5V8yBMIWn6vRmmt7kUQrhQ:1742915476537&q=cab+service+logo&udm=2&fbs=ABzOT_CWdhQLP1FcmU5B0fn3xuWpA-dk4wpBWOGsoR7DG5zJBpcx8kZB4NRoUjdgt8WwoMs7jebc2P25mD9bLva5PWN4OYIEwevXrfOzU4-NF7lrn5uJPZD1tGLHG9gmQlyHQsaXvrrrWftYES6Ib7itOegsItcoD57bhCnDZxzL3cpdD91ghjQ6GC2qHUaYSYynF3NTJM6yHR9uzC1jfoYKnnWt5Vvnjw&sa=X&ved=2ahUKEwjb2eiOwqWMAxV4dvUHHSv-FscQtKgLegQIERAB&biw=1366&bih=607#vhid=xq54DBzk7u1NqM&vssid=mosaic' alt='MegaCityCab Logo' />")
                 .append("<h1>Booking Confirmation</h1>")
                 .append("</div>")
+                .append("<div class='content'>")
                 .append("<p>Dear ").append(customer.getCustomerName()).append(",</p>")
                 .append("<p>Thank you for choosing MegaCityCab. Your booking has been confirmed with the following details:</p>")
-                .append("<div class='details'>")
+                .append("<div class='section'>")
                 .append("<h2>Booking Details</h2>")
-                .append("<p><strong>Booking ID:</strong> ").append(booking.getBookingId()).append("</p>")
-                .append("<p><strong>Booking Date:</strong> ").append(booking.getBookingDate()).append("</p>")
-                .append("<p><strong>Pickup Location:</strong> ").append(booking.getPickupLocation()).append("</p>")
-                .append("<p><strong>Destination:</strong> ").append(booking.getDestination()).append("</p>")
-                .append("<p><strong>Pickup Date:</strong> ").append(booking.getPickupDate()).append("</p>")
-                .append("<p><strong>Pickup Time:</strong> ").append(booking.getPickupTime()).append("</p>")
+                .append("<div class='info-row'><span class='label'>Booking ID:</span><span class='value'>")
+                .append(booking.getBookingId()).append("</span></div>")
+                .append("<div class='info-row'><span class='label'>Booking Date:</span><span class='value'>")
+                .append(booking.getBookingDate()).append("</span></div>")
+                .append("<div class='info-row'><span class='label'>Pickup Location:</span><span class='value'>")
+                .append(booking.getPickupLocation()).append("</span></div>")
+                .append("<div class='info-row'><span class='label'>Destination:</span><span class='value'>")
+                .append(booking.getDestination()).append("</span></div>")
+                .append("<div class='info-row'><span class='label'>Pickup Date:</span><span class='value'>")
+                .append(booking.getPickupDate()).append("</span></div>")
+                .append("<div class='info-row'><span class='label'>Pickup Time:</span><span class='value'>")
+                .append(booking.getPickupTime()).append("</span></div>")
                 .append("</div>")
-                .append("<div class='details'>")
+                .append("<div class='section'>")
                 .append("<h2>Vehicle Details</h2>")
-                .append("<p><strong>Car Model:</strong> ").append(car.getModel()).append("</p>")
-                .append("<p><strong>License Plate:</strong> ").append(car.getLicensePlate()).append("</p>")
-                .append("<p><strong>Driver Required:</strong> ").append(booking.isDriverRequired() ? "Yes" : "No")
-                .append("</p>")
+                .append("<div class='info-row'><span class='label'>Car Model:</span><span class='value'>")
+                .append(car.getModel()).append("</span></div>")
+                .append("<div class='info-row'><span class='label'>License Plate:</span><span class='value'>")
+                .append(car.getLicensePlate()).append("</span></div>")
+                .append("<div class='info-row'><span class='label'>Driver Required:</span><span class='value'>")
+                .append(booking.isDriverRequired() ? "Yes" : "No").append("</span></div>")
                 .append("</div>")
+                .append("<div class='section'>")
                 .append("<div class='invoice'>")
                 .append("<h2>Payment Details</h2>")
                 .append("<table>")
                 .append("<tr><th>Description</th><th>Amount</th></tr>")
-                .append("<tr><td>Base Rate</td><td>Rs. ").append(car.getBaseRate()).append("</td></tr>");
+                .append("<tr><td>Base Rate</td><td>Rs.2000 ").append(car.getBaseRate()).append("</td></tr>");
         if (booking.isDriverRequired()) {
-            emailBody.append("<tr><td>Driver Rate</td><td>Rs. ").append(car.getDriverRate()).append("</td></tr>");
+            emailBody.append("<tr><td>Driver Rate</td><td>Rs. 500").append(car.getDriverRate()).append("</td></tr>");
         }
-        emailBody.append("<tr><td class='total'>Total Amount</td><td class='total'>Rs. ")
-                .append(booking.getTotalAmount()).append("</td></tr>")
+        emailBody.append("<tr class='total'><td>Total Amount</td><td>Rs. ").append(booking.getTotalAmount())
+                .append("</td></tr>")
                 .append("</table>")
                 .append("</div>")
-                .append("<div class='details'>")
+                .append("</div>")
+                .append("<div class='section'>")
                 .append("<h2>Cancellation Policy</h2>")
                 .append("<p>- Cancellations made more than 24 hours before the pickup time will receive a full refund.</p>")
                 .append("<p>- Cancellations made within 24 hours of the pickup time will incur a 10% cancellation fee.</p>")
                 .append("</div>")
-                .append("<p>If you have any questions or need to make changes to your booking, please contact our customer service team.</p>")
+                .append("<div class='contact-info'>")
+                .append("<p>If you have any questions or need to make changes to your booking, please contact our customer service team:</p>")
                 .append("<p><strong>Phone:</strong> +94 11 123 4567</p>")
                 .append("<p><strong>Email:</strong> support@megacitycab.com</p>")
-                .append("<p>Thank you for choosing MegaCityCab!</p>")
-                .append("<div class='footer'>")
-                .append("<p>&copy; 2025 MegaCityCab. All rights reserved.</p>")
                 .append("</div>")
+                .append("</div>")
+                .append("<div class='footer'>")
+                .append("<p>Thank you for choosing MegaCityCab!</p>")
+                .append("<p>© 2025 MegaCityCab. All rights reserved.</p>")
                 .append("</div>")
                 .append("</div>")
                 .append("</body>")
